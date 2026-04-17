@@ -6,16 +6,10 @@
     <title>每日打卡</title>
     <style>
         :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --success: #22c55e;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --bg: #f8fafc;
-            --card: #ffffff;
-            --text: #1e293b;
-            --text-sec: #64748b;
-            --border: #e2e8f0;
+            --primary: #6366f1; --primary-dark: #4f46e5;
+            --success: #22c55e; --danger: #ef4444;
+            --bg: #f8fafc; --card: #ffffff;
+            --text: #1e293b; --text-sec: #64748b; --border: #e2e8f0;
             --radius: 12px;
         }
         * { margin:0; padding:0; box-sizing:border-box; }
@@ -70,7 +64,7 @@
         .check-item.done .checkbox { background:var(--success); border-color:var(--success); color:#fff; }
         .item-info { flex:1; min-width:0; }
         .item-name { font-size:15px; font-weight:500; }
-        .item-meta { display:flex; gap:5px; margin-top:2px; }
+        .item-meta { display:flex; gap:5px; margin-top:2px; flex-wrap:wrap; }
         .tag { font-size:11px; padding:1px 6px; border-radius:4px; }
         .tag.health { background:#f0fdf4; color:#16a34a; }
         .tag.life { background:#fef3c7; color:#d97706; }
@@ -81,14 +75,14 @@
         .btn-icon {
             width:28px; height:28px; border:none; background:none; cursor:pointer;
             border-radius:6px; display:flex; align-items:center; justify-content:center;
-            font-size:13px; color:var(--text-sec); transition:all .15s;
+            font-size:13px; color:var(--text-sec);
         }
         .btn-icon:active { background:#f1f5f9; }
         .btn-icon.danger:active { background:#fef2f2; color:var(--danger); }
         .btn {
             display:inline-flex; align-items:center; gap:4px;
             padding:6px 12px; border:none; border-radius:8px;
-            font-size:13px; font-weight:500; cursor:pointer; transition:all .15s;
+            font-size:13px; font-weight:500; cursor:pointer;
         }
         .btn-primary { background:var(--primary); color:#fff; }
         .btn-primary:active { background:var(--primary-dark); }
@@ -108,7 +102,7 @@
             border-radius:8px; font-size:14px; outline:none;
         }
         .add-inline input:focus { border-color:var(--primary); }
-        .add-row { display:flex; gap:6px; margin-top:6px; align-items:center; }
+        .add-row { display:flex; gap:6px; margin-top:6px; align-items:center; flex-wrap:wrap; }
         .add-inline select {
             padding:5px 8px; border:1.5px solid var(--border); border-radius:8px;
             font-size:12px; outline:none; background:#fff;
@@ -142,7 +136,7 @@
         .nav-item {
             flex:1; display:flex; flex-direction:column; align-items:center; gap:2px;
             padding:5px; border:none; background:none; cursor:pointer;
-            color:var(--text-sec); font-size:11px; transition:color .15s;
+            color:var(--text-sec); font-size:11px;
         }
         .nav-item.active { color:var(--primary); }
         .nav-item .nav-icon { font-size:19px; }
@@ -164,7 +158,7 @@
         }
         .history-date { font-size:13px; font-weight:500; min-width:85px; }
         .history-bar { flex:1; height:7px; background:#f1f5f9; border-radius:4px; overflow:hidden; }
-        .history-fill { height:100%; border-radius:4px; transition:width .3s; }
+        .history-fill { height:100%; border-radius:4px; }
         .history-pct { font-size:13px; font-weight:600; min-width:38px; text-align:right; }
         .sync-hint {
             text-align:center; padding:8px; font-size:12px; color:var(--text-sec);
@@ -173,8 +167,7 @@
     </style>
 </head>
 <body>
-
-<div id="toast" class="toast"></div>
+    <div id="toast" class="toast"></div>
 
 <div id="page-home" class="page active">
     <div class="container">
@@ -191,16 +184,15 @@
                 <div class="progress-text" id="progressText">今日进度</div>
             </div>
         </div>
-
         <div class="section">
             <div class="section-header">
                 <div class="section-title"><span class="icon">🔄</span> 常规事项</div>
-                <button class="btn btn-sm btn-outline" onclick="showAddRoutine()">+ 添加</button>
+                <button class="btn btn-sm btn-outline" id="btnAddRoutine">+ 添加</button>
             </div>
             <div class="card">
                 <div id="routineList"></div>
                 <div id="addRoutineInline" class="add-inline">
-                    <input id="newRoutineName" placeholder="输入事项名称..." onkeydown="if(event.key==='Enter')addRoutine()">
+                    <input id="newRoutineName" placeholder="输入事项名称...">
                     <div class="add-row">
                         <select id="newRoutineCategory">
                             <option value="health">💊 健康</option>
@@ -209,30 +201,28 @@
                             <option value="other">📌 其他</option>
                         </select>
                         <input id="newRoutineTime" type="time" style="padding:5px 8px;border:1.5px solid var(--border);border-radius:8px;font-size:12px;">
-                        <button class="btn btn-sm btn-primary" onclick="addRoutine()">添加</button>
-                        <button class="btn btn-sm btn-ghost" onclick="hideAddRoutine()">取消</button>
+                        <button class="btn btn-sm btn-primary" id="btnConfirmRoutine">添加</button>
+                        <button class="btn btn-sm btn-ghost" id="btnCancelRoutine">取消</button>
                     </div>
                 </div>
             </div>
         </div>
-
         <div class="section">
             <div class="section-header">
                 <div class="section-title"><span class="icon">📝</span> 今日临时事项</div>
-                <button class="btn btn-sm btn-outline" onclick="showAddExtra()">+ 添加</button>
+                <button class="btn btn-sm btn-outline" id="btnAddExtra">+ 添加</button>
             </div>
             <div class="card">
                 <div id="extraList"></div>
                 <div id="addExtraInline" class="add-inline">
-                    <input id="newExtraName" placeholder="输入临时事项..." onkeydown="if(event.key==='Enter')addExtra()">
+                    <input id="newExtraName" placeholder="输入临时事项...">
                     <div class="add-row">
-                        <button class="btn btn-sm btn-primary" onclick="addExtra()">添加</button>
-                        <button class="btn btn-sm btn-ghost" onclick="hideAddExtra()">取消</button>
+                        <button class="btn btn-sm btn-primary" id="btnConfirmExtra">添加</button>
+                        <button class="btn btn-sm btn-ghost" id="btnCancelExtra">取消</button>
                     </div>
                 </div>
             </div>
         </div>
-
         <div class="sync-hint">💡 数据自动保存在本地浏览器，每天常规项自动出现</div>
     </div>
 </div>
@@ -242,12 +232,12 @@
         <h2 style="font-size:18px; margin-bottom:12px;">📊 打卡历史</h2>
         <div class="card" id="historyList"></div>
         <div style="margin-top:12px; text-align:center;">
-            <button class="btn btn-danger btn-sm" onclick="clearHistory()">🗑️ 清除历史数据</button>
+            <button class="btn btn-danger btn-sm" id="btnClearHistory">🗑️ 清除历史数据</button>
         </div>
     </div>
 </div>
 
-<div id="editModal" class="modal-overlay" onclick="if(event.target===this)closeEdit()">
+<div id="editModal" class="modal-overlay">
     <div class="modal">
         <h3 id="editModalTitle">编辑</h3>
         <input type="hidden" id="editId">
@@ -272,280 +262,119 @@
             </div>
         </div>
         <div class="modal-actions">
-            <button class="btn btn-outline" onclick="closeEdit()">取消</button>
-            <button class="btn btn-primary" onclick="saveEdit()">保存</button>
+            <button class="btn btn-outline" id="btnCancelEdit">取消</button>
+            <button class="btn btn-primary" id="btnSaveEdit">保存</button>
         </div>
     </div>
 </div>
 
 <div class="bottom-nav">
-    <button class="nav-item active" onclick="switchPage('home')"><span class="nav-icon">📋</span>打卡</button>
-    <button class="nav-item" onclick="switchPage('history')"><span class="nav-icon">📊</span>历史</button>
+    <button class="nav-item active" id="navHome"><span class="nav-icon">📋</span>打卡</button>
+    <button class="nav-item" id="navHistory"><span class="nav-icon">📊</span>历史</button>
 </div>
 
-<script>
-const TODAY = new Date().toISOString().split('T')[0];
-const ROUTINES_KEY = 'checkin_v2_routines';
-const DAY_KEY = 'checkin_v2_' + TODAY;
+<div id="toast" class="toast"></div>
 
-const DEFAULT_ROUTINES = [
-    { name: '吃阿司匹林', category: 'health', time: '08:00' },
-    { name: '复合维生素', category: 'health', time: '' },
-    { name: '鱼油+钙片', category: 'health', time: '08:00' }
-];
-
-const CAT_LABELS = { health:'💊 健康', life:'🏠 生活', work:'💼 工作', other:'📌 其他' };
-
-let routines = [];
-let dayData = { routineCheckins: {}, extras: [] };
-
-function loadRoutines() {
-    const saved = localStorage.getItem(ROUTINES_KEY);
-    if (saved) routines = JSON.parse(saved);
-
-    fetch('./routines.json?t=' + Date.now()).then(r => {
-        if (!r.ok) throw new Error('fetch failed');
-        return r.json();
-    }).then(data => {
-        if (data &amp;&amp; data.length) {
-            routines = data;
-            saveRoutines();
-            render();
-        }
-    }).catch(() => {
-        if (!routines.length) {
-            routines = [...DEFAULT_ROUTINES];
-            saveRoutines();
-            render();
-        }
-    });
-}
-
-function saveRoutines() { localStorage.setItem(ROUTINES_KEY, JSON.stringify(routines)); }
-
-function loadDayData() {
-    const saved = localStorage.getItem(DAY_KEY);
-    dayData = saved ? JSON.parse(saved) : { routineCheckins: {}, extras: [] };
-}
-
-function saveDayData() { localStorage.setItem(DAY_KEY, JSON.stringify(dayData)); }
-
-function toast(msg) {
-    const el = document.getElementById('toast');
-    el.textContent = msg; el.classList.add('show');
-    setTimeout(() => el.classList.remove('show'), 2000);
-}
-
-function fmtDate() {
-    const d = new Date(), w = ['日','一','二','三','四','五','六'];
-    return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 星期${w[d.getDay()]}`;
-}
-
-function uid() { return Math.random().toString(36).substr(2, 6); }
-
-function switchPage(p) {
-    document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
-    document.getElementById('page-' + p).classList.add('active');
-    document.querySelectorAll('.nav-item').forEach((n,i) => n.classList.toggle('active', ['home','history'][i]===p));
-    if (p === 'history') renderHistory();
-}
-
-function render() { renderRoutines(); renderExtras(); updateStats(); }
-
-function updateStats() {
-    const rDone = routines.filter(r => dayData.routineCheckins[r.name]).length;
-    const eDone = (dayData.extras||[]).filter(e => e.done).length;
-    const total = routines.length + (dayData.extras||[]).length;
-    const done = rDone + eDone;
-    const pct = total ? Math.round(done/total*100) : 0;
-    document.getElementById('statDone').textContent = done;
-    document.getElementById('statTotal').textContent = total;
-    document.getElementById('statPct').textContent = pct + '%';
-    document.getElementById('progressFill').style.width = pct + '%';
-    document.getElementById('progressText').textContent = `今日进度 ${done}/${total}`;
-}
-
-function renderRoutines() {
-    const el = document.getElementById('routineList');
-    if (!routines.length) {
-        el.innerHTML = '<div class="empty"><div class="empty-icon">🔄</div><p>暂无常规事项</p></div>';
-        return;
-    }
-    el.innerHTML = routines.map((r, i) => {
-        const checked = !!dayData.routineCheckins[r.name];
-        const catTag = r.category ? `<span class="tag ${r.category}">${CAT_LABELS[r.category]||''}</span>` : '';
-        const timeTag = r.time ? `<span class="tag time">⏰ ${r.time}</span>` : '';
-        return `<div class="check-item ${checked?'done':''}" onclick="toggleRoutine(${i})">
-            <div class="checkbox">${checked?'✓':''}</div>
-            <div class="item-info">
-                <div class="item-name">${r.name}</div>
-                <div class="item-meta">${catTag}${timeTag}</div>
+<div id="page-home" class="page active">
+    <div class="container">
+        <div class="header">
+            <h1>📋 每日打卡</h1>
+            <div class="date-info" id="dateInfo"></div>
+            <div class="stats-row">
+                <div class="stat-card"><div class="num" id="statDone">0</div><div class="label">已完成</div></div>
+                <div class="stat-card"><div class="num" id="statTotal">0</div><div class="label">总事项</div></div>
+                <div class="stat-card"><div class="num" id="statPct">0%</div><div class="label">完成率</div></div>
             </div>
-            <div class="item-actions" onclick="event.stopPropagation()">
-                <button class="btn-icon" onclick="openEdit('routine',${i})">✏️</button>
-                <button class="btn-icon danger" onclick="deleteRoutine(${i})">🗑️</button>
+            <div class="progress-wrap">
+                <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+                <div class="progress-text" id="progressText">今日进度</div>
             </div>
-        </div>`;
-    }).join('');
-}
-
-function renderExtras() {
-    const el = document.getElementById('extraList');
-    const extras = dayData.extras || [];
-    if (!extras.length) {
-        el.innerHTML = '<div class="empty"><div class="empty-icon">📝</div><p>暂无临时事项</p></div>';
-        return;
-    }
-    el.innerHTML = extras.map((e, i) => {
-        return `<div class="check-item ${e.done?'done':''}" onclick="toggleExtra(${i})">
-            <div class="checkbox">${e.done?'✓':''}</div>
-            <div class="item-info"><div class="item-name">${e.name}</div></div>
-            <div class="item-actions" onclick="event.stopPropagation()">
-                <button class="btn-icon" onclick="openEdit('extra',${i})">✏️</button>
-                <button class="btn-icon danger" onclick="deleteExtra(${i})">🗑️</button>
+        </div>
+        <div class="section">
+            <div class="section-header">
+                <div class="section-title"><span class="icon">🔄</span> 常规事项</div>
+                <button class="btn btn-sm btn-outline" id="btnAddRoutine">+ 添加</button>
             </div>
-        </div>`;
-    }).join('');
-}
+            <div class="card">
+                <div id="routineList"></div>
+                <div id="addRoutineInline" class="add-inline">
+                    <input id="newRoutineName" placeholder="输入事项名称...">
+                    <div class="add-row">
+                        <select id="newRoutineCategory">
+                            <option value="health">💊 健康</option>
+                            <option value="life">🏠 生活</option>
+                            <option value="work">💼 工作</option>
+                            <option value="other">📌 其他</option>
+                        </select>
+                        <input id="newRoutineTime" type="time" style="padding:5px 8px;border:1.5px solid var(--border);border-radius:8px;font-size:12px;">
+                        <button class="btn btn-sm btn-primary" id="btnConfirmRoutine">添加</button>
+                        <button class="btn btn-sm btn-ghost" id="btnCancelRoutine">取消</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="section">
+            <div class="section-header">
+                <div class="section-title"><span class="icon">📝</span> 今日临时事项</div>
+                <button class="btn btn-sm btn-outline" id="btnAddExtra">+ 添加</button>
+            </div>
+            <div class="card">
+                <div id="extraList"></div>
+                <div id="addExtraInline" class="add-inline">
+                    <input id="newExtraName" placeholder="输入临时事项...">
+                    <div class="add-row">
+                        <button class="btn btn-sm btn-primary" id="btnConfirmExtra">添加</button>
+                        <button class="btn btn-sm btn-ghost" id="btnCancelExtra">取消</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="sync-hint">💡 数据自动保存在本地浏览器，每天常规项自动出现</div>
+    </div>
+</div>
 
-function toggleRoutine(i) {
-    const name = routines[i].name;
-    dayData.routineCheckins[name] = !dayData.routineCheckins[name];
-    saveDayData(); render();
-}
+<div id="page-history" class="page">
+    <div class="container" style="padding-top:16px;">
+        <h2 style="font-size:18px; margin-bottom:12px;">📊 打卡历史</h2>
+        <div class="card" id="historyList"></div>
+        <div style="margin-top:12px; text-align:center;">
+            <button class="btn btn-danger btn-sm" id="btnClearHistory">🗑️ 清除历史数据</button>
+        </div>
+    </div>
+</div>
 
-function toggleExtra(i) {
-    dayData.extras[i].done = !dayData.extras[i].done;
-    saveDayData(); render();
-}
+<div id="editModal" class="modal-overlay">
+    <div class="modal">
+        <h3 id="editModalTitle">编辑</h3>
+        <input type="hidden" id="editId">
+        <input type="hidden" id="editType">
+        <div class="form-group">
+            <label>名称</label>
+            <input id="editName" placeholder="事项名称">
+        </div>
+        <div id="editRoutineFields">
+            <div class="form-group">
+                <label>分类</label>
+                <select id="editCategory">
+                    <option value="health">💊 健康</option>
+                    <option value="life">🏠 生活</option>
+                    <option value="work">💼 工作</option>
+                    <option value="other">📌 其他</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>提醒时间</label>
+                <input id="editTime" type="time">
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-outline" id="btnCancelEdit">取消</button>
+            <button class="btn btn-primary" id="btnSaveEdit">保存</button>
+        </div>
+    </div>
+</div>
 
-function showAddRoutine() {
-    document.getElementById('addRoutineInline').classList.add('active');
-    document.getElementById('newRoutineName').focus();
-}
-function hideAddRoutine() {
-    document.getElementById('addRoutineInline').classList.remove('active');
-    document.getElementById('newRoutineName').value = '';
-}
-function addRoutine() {
-    const name = document.getElementById('newRoutineName').value.trim();
-    if (!name) { toast('请输入名称'); return; }
-    routines.push({ name, category: document.getElementById('newRoutineCategory').value, time: document.getElementById('newRoutineTime').value });
-    saveRoutines(); hideAddRoutine(); toast('已添加 ✅'); render();
-}
-function deleteRoutine(i) {
-    if (!confirm('确定删除「' + routines[i].name + '」？')) return;
-    routines.splice(i, 1); saveRoutines(); toast('已删除'); render();
-}
-
-function showAddExtra() {
-    document.getElementById('addExtraInline').classList.add('active');
-    document.getElementById('newExtraName').focus();
-}
-function hideAddExtra() {
-    document.getElementById('addExtraInline').classList.remove('active');
-    document.getElementById('newExtraName').value = '';
-}
-function addExtra() {
-    const name = document.getElementById('newExtraName').value.trim();
-    if (!name) { toast('请输入名称'); return; }
-    if (!dayData.extras) dayData.extras = [];
-    dayData.extras.push({ id: uid(), name, done: false });
-    saveDayData(); hideAddExtra(); toast('已添加 ✅'); render();
-}
-function deleteExtra(i) {
-    if (!confirm('确定删除「' + dayData.extras[i].name + '」？')) return;
-    dayData.extras.splice(i, 1); saveDayData(); toast('已删除'); render();
-}
-
-function openEdit(type, idx) {
-    document.getElementById('editType').value = type;
-    document.getElementById('editId').value = idx;
-    const routineFields = document.getElementById('editRoutineFields');
-    if (type === 'routine') {
-        const r = routines[idx];
-        document.getElementById('editModalTitle').textContent = '编辑常规事项';
-        document.getElementById('editName').value = r.name;
-        document.getElementById('editCategory').value = r.category || 'other';
-        document.getElementById('editTime').value = r.time || '';
-        routineFields.style.display = 'block';
-    } else {
-        document.getElementById('editModalTitle').textContent = '编辑临时事项';
-        document.getElementById('editName').value = dayData.extras[idx].name;
-        routineFields.style.display = 'none';
-    }
-    document.getElementById('editModal').classList.add('active');
-}
-
-function closeEdit() { document.getElementById('editModal').classList.remove('active'); }
-
-function saveEdit() {
-    const type = document.getElementById('editType').value;
-    const idx = parseInt(document.getElementById('editId').value);
-    const name = document.getElementById('editName').value.trim();
-    if (!name) { toast('名称不能为空'); return; }
-    if (type === 'routine') {
-        const oldName = routines[idx].name;
-        if (oldName !== name &amp;&amp; dayData.routineCheckins[oldName] !== undefined) {
-            dayData.routineCheckins[name] = dayData.routineCheckins[oldName];
-            delete dayData.routineCheckins[oldName]; saveDayData();
-        }
-        routines[idx].name = name;
-        routines[idx].category = document.getElementById('editCategory').value;
-        routines[idx].time = document.getElementById('editTime').value;
-        saveRoutines();
-    } else {
-        dayData.extras[idx].name = name; saveDayData();
-    }
-    closeEdit(); toast('已更新 ✅'); render();
-}
-
-function renderHistory() {
-    const el = document.getElementById('historyList');
-    const keys = [];
-    for (let i = 0; i < localStorage.length; i++) {
-        const k = localStorage.key(i);
-        if (k.startsWith('checkin_v2_20')) keys.push(k);
-    }
-    keys.sort().reverse();
-    if (!keys.length) {
-        el.innerHTML = '<div class="empty"><div class="empty-icon">📊</div><p>暂无打卡记录</p></div>';
-        return;
-    }
-    const savedR = localStorage.getItem(ROUTINES_KEY);
-    const rList = savedR ? JSON.parse(savedR) : DEFAULT_ROUTINES;
-    let html = '';
-    keys.slice(0, 14).forEach(k => {
-        const date = k.replace('checkin_v2_', '');
-        const data = JSON.parse(localStorage.getItem(k));
-        const rDone = rList.filter(r => data.routineCheckins &amp;&amp; data.routineCheckins[r.name]).length;
-        const eTotal = (data.extras||[]).length;
-        const eDone = (data.extras||[]).filter(e => e.done).length;
-        const total = rList.length + eTotal, done = rDone + eDone;
-        const pct = total ? Math.round(done/total*100) : 0;
-        const color = pct >= 80 ? '#22c55e' : pct >= 50 ? '#f59e0b' : '#ef4444';
-        html += `<div class="history-item">
-            <div class="history-date">${date}</div>
-            <div class="history-bar"><div class="history-fill" style="width:${pct}%;background:${color}"></div></div>
-            <div class="history-pct" style="color:${color}">${pct}%</div>
-        </div>`;
-    });
-    el.innerHTML = html;
-}
-
-function clearHistory() {
-    if (!confirm('确定清除所有历史打卡数据？')) return;
-    const keys = [];
-    for (let i = 0; i < localStorage.length; i++) {
-        const k = localStorage.key(i);
-        if (k.startsWith('checkin_v2_20') &amp;&amp; k !== DAY_KEY) keys.push(k);
-    }
-    keys.forEach(k => localStorage.removeItem(k));
-    toast('历史数据已清除'); renderHistory();
-}
-
-document.getElementById('dateInfo').textContent = fmtDate();
-loadRoutines(); loadDayData(); render();
-</script>
-</body>
-</html>
+<div class="bottom-nav">
+    <button class="nav-item active" id="navHome"><span class="nav-icon">📋</span>打卡</button>
+    <button class="nav-item" id="navHistory"><span class="nav-icon">📊</span>历史</button>
+</div>
