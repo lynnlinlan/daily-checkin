@@ -2,11 +2,15 @@ name: 每日打卡推送
 
 on:
   schedule:
+    # UTC 00:00 = 北京时间 08:00 早上提醒
     - cron: '0 0 * * *'
+    # UTC 15:00 = 北京时间 23:00 晚上检查
+    - cron: '0 15 * * *'
   workflow_dispatch:
 
 jobs:
-  push-checklist:
+  push-morning:
+    if: github.event.schedule == '0 0 * * *' || (github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     steps:
       - name: 检出代码
@@ -20,9 +24,33 @@ jobs:
       - name: 安装依赖
         run: pip install requests
 
-      - name: 推送每日打卡清单
+      - name: 早间打卡提醒
         env:
           SERVERCHAN_KEY: ${{ secrets.SERVERCHAN_KEY }}
           PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
           PUSH_TYPE: serverchan
+          PUSH_MODE: morning
+        run: python push.py
+
+  push-evening:
+    if: github.event.schedule == '0 15 * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 安装依赖
+        run: pip install requests
+
+      - name: 晚间打卡检查
+        env:
+          SERVERCHAN_KEY: ${{ secrets.SERVERCHAN_KEY }}
+          PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
+          PUSH_TYPE: serverchan
+          PUSH_MODE: evening
         run: python push.py
