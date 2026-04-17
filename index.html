@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>每日打卡</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --text-sec: #64748b;
+            --border: #e2e8f0;
+            --radius: 12px;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg); color: var(--text);
+            min-height: 100vh; -webkit-font-smoothing: antialiased;
+        }
+        .container { max-width:480px; margin:0 auto; padding:0 16px 80px; }
+        .header {
+            background: linear-gradient(135deg,#6366f1 0%,#8b5cf6 50%,#a78bfa 100%);
+            color:#fff; padding:16px 16px 20px; margin:0 -16px 12px;
+            position:relative; overflow:hidden;
+        }
+        .header::after {
+            content:''; position:absolute; top:-50%; right:-20%;
+            width:200px; height:200px; background:rgba(255,255,255,.08); border-radius:50%;
+        }
+        .header h1 { font-size:20px; font-weight:700; position:relative; }
+        .header .date-info { font-size:13px; opacity:.85; margin-top:3px; position:relative; }
+        .stats-row { display:flex; gap:10px; margin-top:10px; position:relative; }
+        .stat-card {
+            background:rgba(255,255,255,.15); backdrop-filter:blur(10px);
+            border-radius:10px; padding:7px 10px; flex:1; text-align:center;
+        }
+        .stat-card .num { font-size:20px; font-weight:700; }
+        .stat-card .label { font-size:11px; opacity:.8; margin-top:2px; }
+        .progress-wrap { margin-top:10px; position:relative; }
+        .progress-bar { height:5px; background:rgba(255,255,255,.2); border-radius:3px; overflow:hidden; }
+        .progress-fill { height:100%; background:#fff; border-radius:3px; transition:width .5s; }
+        .progress-text { font-size:12px; opacity:.85; margin-top:3px; text-align:right; }
+        .section { margin-bottom:12px; }
+        .section-header {
+            display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;
+        }
+        .section-title { font-size:15px; font-weight:600; display:flex; align-items:center; gap:5px; }
+        .section-title .icon { font-size:17px; }
+        .card { background:var(--card); border-radius:var(--radius); box-shadow:0 1px 3px rgba(0,0,0,.06); overflow:hidden; }
+        .check-item {
+            display:flex; align-items:center; padding:10px 14px; gap:10px;
+            border-bottom:1px solid var(--border); cursor:pointer; transition:background .15s;
+        }
+        .check-item:last-child { border-bottom:none; }
+        .check-item:active { background:#f1f5f9; }
+        .check-item.done { opacity:.5; }
+        .check-item.done .item-name { text-decoration:line-through; }
+        .checkbox {
+            width:22px; height:22px; border-radius:6px; border:2px solid #cbd5e1;
+            display:flex; align-items:center; justify-content:center;
+            flex-shrink:0; transition:all .2s; font-size:13px;
+        }
+        .check-item.done .checkbox { background:var(--success); border-color:var(--success); color:#fff; }
+        .item-info { flex:1; min-width:0; }
+        .item-name { font-size:15px; font-weight:500; }
+        .item-meta { display:flex; gap:5px; margin-top:2px; }
+        .tag { font-size:11px; padding:1px 6px; border-radius:4px; }
+        .tag.health { background:#f0fdf4; color:#16a34a; }
+        .tag.life { background:#fef3c7; color:#d97706; }
+        .tag.work { background:#ede9fe; color:#7c3aed; }
+        .tag.other { background:#f1f5f9; color:#64748b; }
+        .tag.time { background:#fce7f3; color:#db2777; }
+        .item-actions { display:flex; gap:2px; }
+        .btn-icon {
+            width:28px; height:28px; border:none; background:none; cursor:pointer;
+            border-radius:6px; display:flex; align-items:center; justify-content:center;
+            font-size:13px; color:var(--text-sec); transition:all .15s;
+        }
+        .btn-icon:active { background:#f1f5f9; }
+        .btn-icon.danger:active { background:#fef2f2; color:var(--danger); }
+        .btn {
+            display:inline-flex; align-items:center; gap:4px;
+            padding:6px 12px; border:none; border-radius:8px;
+            font-size:13px; font-weight:500; cursor:pointer; transition:all .15s;
+        }
+        .btn-primary { background:var(--primary); color:#fff; }
+        .btn-primary:active { background:var(--primary-dark); }
+        .btn-outline { background:transparent; color:var(--primary); border:1.5px solid var(--primary); }
+        .btn-outline:active { background:#eef2ff; }
+        .btn-sm { padding:5px 10px; font-size:12px; }
+        .btn-ghost { background:transparent; color:var(--text-sec); border:none; }
+        .btn-ghost:active { color:var(--text); background:#f1f5f9; }
+        .btn-danger { background:transparent; color:var(--danger); border:1.5px solid var(--danger); }
+        .btn-danger:active { background:#fef2f2; }
+        .add-inline {
+            display:none; padding:8px 14px; border-top:1px solid var(--border); background:#fafbfc;
+        }
+        .add-inline.active { display:block; }
+        .add-inline input {
+            width:100%; padding:7px 10px; border:1.5px solid var(--border);
+            border-radius:8px; font-size:14px; outline:none;
+        }
+        .add-inline input:focus { border-color:var(--primary); }
+        .add-row { display:flex; gap:6px; margin-top:6px; align-items:center; }
+        .add-inline select {
+            padding:5px 8px; border:1.5px solid var(--border); border-radius:8px;
+            font-size:12px; outline:none; background:#fff;
+        }
+        .modal-overlay {
+            display:none; position:fixed; top:0; left:0; right:0; bottom:0;
+            background:rgba(0,0,0,.4); z-index:100;
+            align-items:center; justify-content:center; padding:20px;
+        }
+        .modal-overlay.active { display:flex; }
+        .modal {
+            background:#fff; border-radius:16px; width:100%; max-width:380px;
+            padding:20px; box-shadow:0 20px 60px rgba(0,0,0,.15);
+            animation:slideUp .2s ease;
+        }
+        @keyframes slideUp { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
+        .modal h3 { font-size:17px; margin-bottom:14px; }
+        .form-group { margin-bottom:12px; }
+        .form-group label { display:block; font-size:13px; font-weight:500; color:var(--text-sec); margin-bottom:4px; }
+        .form-group input, .form-group select {
+            width:100%; padding:8px 10px; border:1.5px solid var(--border);
+            border-radius:8px; font-size:14px; outline:none;
+        }
+        .form-group input:focus, .form-group select:focus { border-color:var(--primary); }
+        .modal-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:16px; }
+        .bottom-nav {
+            position:fixed; bottom:0; left:0; right:0;
+            background:#fff; border-top:1px solid var(--border);
+            display:flex; padding:6px 0 calc(6px + env(safe-area-inset-bottom)); z-index:50;
+        }
+        .nav-item {
+            flex:1; display:flex; flex-direction:column; align-items:center; gap:2px;
+            padding:5px; border:none; background:none; cursor:pointer;
+            color:var(--text-sec); font-size:11px; transition:color .15s;
+        }
+        .nav-item.active { color:var(--primary); }
+        .nav-item .nav-icon { font-size:19px; }
+        .page { display:none; }
+        .page.active { display:block; }
+        .toast {
+            position:fixed; top:20px; left:50%; transform:translateX(-50%) translateY(-80px);
+            background:#1e293b; color:#fff; padding:10px 20px; border-radius:10px;
+            font-size:14px; z-index:200; transition:transform .3s;
+            box-shadow:0 4px 12px rgba(0,0,0,.15);
+        }
+        .toast.show { transform:translateX(-50%) translateY(0); }
+        .empty { text-align:center; padding:24px 16px; color:var(--text-sec); }
+        .empty .empty-icon { font-size:32px; margin-bottom:6px; }
+        .empty p { font-size:13px; }
+        .history-item {
+            display:flex; align-items:center; padding:10px 14px;
+            border-bottom:1px solid var(--border); gap:10px;
+        }
+        .history-date { font-size:13px; font-weight:500; min-width:85px; }
+        .history-bar { flex:1; height:7px; background:#f1f5f9; border-radius:4px; overflow:hidden; }
+        .history-fill { height:100%; border-radius:4px; transition:width .3s; }
+        .history-pct { font-size:13px; font-weight:600; min-width:38px; text-align:right; }
+        .sync-hint {
+            text-align:center; padding:8px; font-size:12px; color:var(--text-sec);
+            background:#f8fafc; border-radius:8px; margin-top:12px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="toast" class="toast"></div>
+
+<div id="page-home" class="page active">
+    <div class="container">
+        <div class="header">
+            <h1>📋 每日打卡</h1>
+            <div class="date-info" id="dateInfo"></div>
+            <div class="stats-row">
+                <div class="stat-card"><div class="num" id="statDone">0</div><div class="label">已完成</div></div>
+                <div class="stat-card"><div class="num" id="statTotal">0</div><div class="label">总事项</div></div>
+                <div class="stat-card"><div class="num" id="statPct">0%</div><div class="label">完成率</div></div>
+            </div>
+            <div class="progress-wrap">
+                <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+                <div class="progress-text" id="progressText">今日进度</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <div class="section-title"><span class="icon">🔄</span> 常规事项</div>
+                <button class="btn btn-sm btn-outline" onclick="showAddRoutine()">+ 添加</button>
+            </div>
+            <div class="card">
+                <div id="routineList"></div>
+                <div id="addRoutineInline" class="add-inline">
+                    <input id="newRoutineName" placeholder="输入事项名称..." onkeydown="if(event.key==='Enter')addRoutine()">
+                    <div class="add-row">
+                        <select id="newRoutineCategory">
+                            <option value="health">💊 健康</option>
+                            <option value="life">🏠 生活</option>
+                            <option value="work">💼 工作</option>
+                            <option value="other">📌 其他</option>
+                        </select>
+                        <input id="newRoutineTime" type="time" style="padding:5px 8px;border:1.5px solid var(--border);border-radius:8px;font-size:12px;">
+                        <button class="btn btn-sm btn-primary" onclick="addRoutine()">添加</button>
+                        <button class="btn btn-sm btn-ghost" onclick="hideAddRoutine()">取消</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <div class="section-title"><span class="icon">📝</span> 今日临时事项</div>
+                <button class="btn btn-sm btn-outline" onclick="showAddExtra()">+ 添加</button>
+            </div>
+            <div class="card">
+                <div id="extraList"></div>
+                <div id="addExtraInline" class="add-inline">
+                    <input id="newExtraName" placeholder="输入临时事项..." onkeydown="if(event.key==='Enter')addExtra()">
+                    <div class="add-row">
+                        <button class="btn btn-sm btn-primary" onclick="addExtra()">添加</button>
+                        <button class="btn btn-sm btn-ghost" onclick="hideAddExtra()">取消</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sync-hint">💡 数据自动保存在本地浏览器，每天常规项自动出现</div>
+    </div>
+</div>
+
+<div id="page-history" class="page">
+    <div class="container" style="padding-top:16px;">
+        <h2 style="font-size:18px; margin-bottom:12px;">📊 打卡历史</h2>
+        <div class="card" id="historyList"></div>
+        <div style="margin-top:12px; text-align:center;">
+            <button class="btn btn-danger btn-sm" onclick="clearHistory()">🗑️ 清除历史数据</button>
+        </div>
+    </div>
+</div>
+
+<div id="editModal" class="modal-overlay" onclick="if(event.target===this)closeEdit()">
+    <div class="modal">
+        <h3 id="editModalTitle">编辑</h3>
+        <input type="hidden" id="editId">
+        <input type="hidden" id="editType">
+        <div class="form-group">
+            <label>名称</label>
+            <input id="editName" placeholder="事项名称">
+        </div>
+        <div id="editRoutineFields">
+            <div class="form-group">
+                <label>分类</label>
+                <select id="editCategory">
+                    <option value="health">💊 健康</option>
+                    <option value="life">🏠 生活</option>
+                    <option value="work">💼 工作</option>
+                    <option value="other">📌 其他</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>提醒时间</label>
+                <input id="editTime" type="time">
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-outline" onclick="closeEdit()">取消</button>
+            <button class="btn btn-primary" onclick="saveEdit()">保存</button>
+        </div>
+    </div>
+</div>
+
+<div class="bottom-nav">
+    <button class="nav-item active" onclick="switchPage('home')"><span class="nav-icon">📋</span>打卡</button>
+    <button class="nav-item" onclick="switchPage('history')"><span class="nav-icon">📊</span>历史</button>
+</div>
+
+<script>
+const TODAY = new Date().toISOString().split('T')[0];
+const ROUTINES_KEY = 'checkin_routines';
+const DAY_KEY = 'checkin_' + TODAY;
+
+const DEFAULT_ROUTINES = [
+    { name: '吃阿司匹林', category: 'health', time: '08:00' },
+    { name: '复合维生素', category: 'health', time: '' },
+    { name: '鱼油+钙片', category: 'health', time: '08:00' }
+];
+
+const CAT_LABELS = { health:'💊 健康', life:'🏠 生活', work:'💼 工作', other:'📌 其他' };
+
+let routines = [];
+let dayData = { routineCheckins: {}, extras: [] };
+
+function loadRoutines() {
+    const saved = localStorage.getItem(ROUTINES_KEY);
+    if (saved) {
+        routines = JSON.parse(saved);
+    } else {
+        routines = [...DEFAULT_ROUTINES];
+        saveRoutines();
+        fetch('./routines.json').then(r => r.json()).then(data => {
+            if (data &amp;&amp; data.length) { routines = data; saveRoutines(); render(); }
+        }).catch(() => {});
+    }
+}
+
+function saveRoutines() { localStorage.setItem(ROUTINES_KEY, JSON.stringify(routines)); }
+
+function loadDayData() {
+    const saved = localStorage.getItem(DAY_KEY);
+    dayData = saved ? JSON.parse(saved) : { routineCheckins: {}, extras: [] };
+}
+
+function saveDayData() { localStorage.setItem(DAY_KEY, JSON.stringify(dayData)); }
+
+function toast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg; el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+function fmtDate() {
+    const d = new Date(), w = ['日','一','二','三','四','五','六'];
+    return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 星期${w[d.getDay()]}`;
+}
+
+function uid() { return Math.random().toString(36).substr(2, 6); }
+
+function switchPage(p) {
+    document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+    document.getElementById('page-' + p).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach((n,i) => n.classList.toggle('active', ['home','history'][i]===p));
+    if (p === 'history') renderHistory();
+}
+
+function render() { renderRoutines(); renderExtras(); updateStats(); }
+
+function updateStats() {
+    const rDone = routines.filter(r => dayData.routineCheckins[r.name]).length;
+    const eDone = (dayData.extras||[]).filter(e => e.done).length;
+    const total = routines.length + (dayData.extras||[]).length;
+    const done = rDone + eDone;
+    const pct = total ? Math.round(done/total*100) : 0;
+    document.getElementById('statDone').textContent = done;
+    document.getElementById('statTotal').textContent = total;
+    document.getElementById('statPct').textContent = pct + '%';
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressText').textContent = `今日进度 ${done}/${total}`;
+}
+
+function renderRoutines() {
+    const el = document.getElementById('routineList');
+    if (!routines.length) {
+        el.innerHTML = '<div class="empty"><div class="empty-icon">🔄</div><p>暂无常规事项</p></div>';
+        return;
+    }
+    el.innerHTML = routines.map((r, i) => {
+        const checked = !!dayData.routineCheckins[r.name];
+        const catTag = r.category ? `<span class="tag ${r.category}">${CAT_LABELS[r.category]||''}</span>` : '';
+        const timeTag = r.time ? `<span class="tag time">⏰ ${r.time}</span>` : '';
+        return `<div class="check-item ${checked?'done':''}" onclick="toggleRoutine(${i})">
+            <div class="checkbox">${checked?'✓':''}</div>
+            <div class="item-info">
+                <div class="item-name">${r.name}</div>
+                <div class="item-meta">${catTag}${timeTag}</div>
+            </div>
+            <div class="item-actions" onclick="event.stopPropagation()">
+                <button class="btn-icon" onclick="openEdit('routine',${i})">✏️</button>
+                <button class="btn-icon danger" onclick="deleteRoutine(${i})">🗑️</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function renderExtras() {
+    const el = document.getElementById('extraList');
+    const extras = dayData.extras || [];
+    if (!extras.length) {
+        el.innerHTML = '<div class="empty"><div class="empty-icon">📝</div><p>暂无临时事项</p></div>';
+        return;
+    }
+    el.innerHTML = extras.map((e, i) => {
+        return `<div class="check-item ${e.done?'done':''}" onclick="toggleExtra(${i})">
+            <div class="checkbox">${e.done?'✓':''}</div>
+            <div class="item-info"><div class="item-name">${e.name}</div></div>
+            <div class="item-actions" onclick="event.stopPropagation()">
+                <button class="btn-icon" onclick="openEdit('extra',${i})">✏️</button>
+                <button class="btn-icon danger" onclick="deleteExtra(${i})">🗑️</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function toggleRoutine(i) {
+    const name = routines[i].name;
+    dayData.routineCheckins[name] = !dayData.routineCheckins[name];
+    saveDayData(); render();
+}
+
+function toggleExtra(i) {
+    dayData.extras[i].done = !dayData.extras[i].done;
+    saveDayData(); render();
+}
+
+function showAddRoutine() {
+    document.getElementById('addRoutineInline').classList.add('active');
+    document.getElementById('newRoutineName').focus();
+}
+function hideAddRoutine() {
+    document.getElementById('addRoutineInline').classList.remove('active');
+    document.getElementById('newRoutineName').value = '';
+}
+function addRoutine() {
+    const name = document.getElementById('newRoutineName').value.trim();
+    if (!name) { toast('请输入名称'); return; }
+    routines.push({ name, category: document.getElementById('newRoutineCategory').value, time: document.getElementById('newRoutineTime').value });
+    saveRoutines(); hideAddRoutine(); toast('已添加 ✅'); render();
+}
+function deleteRoutine(i) {
+    if (!confirm('确定删除「' + routines[i].name + '」？')) return;
+    routines.splice(i, 1); saveRoutines(); toast('已删除'); render();
+}
+
+function showAddExtra() {
+    document.getElementById('addExtraInline').classList.add('active');
+    document.getElementById('newExtraName').focus();
+}
+function hideAddExtra() {
+    document.getElementById('addExtraInline').classList.remove('active');
+    document.getElementById('newExtraName').value = '';
+}
+function addExtra() {
+    const name = document.getElementById('newExtraName').value.trim();
+    if (!name) { toast('请输入名称'); return; }
+    if (!dayData.extras) dayData.extras = [];
+    dayData.extras.push({ id: uid(), name, done: false });
+    saveDayData(); hideAddExtra(); toast('已添加 ✅'); render();
+}
+function deleteExtra(i) {
+    if (!confirm('确定删除「' + dayData.extras[i].name + '」？')) return;
+    dayData.extras.splice(i, 1); saveDayData(); toast('已删除'); render();
+}
+
+function openEdit(type, idx) {
+    document.getElementById('editType').value = type;
+    document.getElementById('editId').value = idx;
+    const routineFields = document.getElementById('editRoutineFields');
+    if (type === 'routine') {
+        const r = routines[idx];
+        document.getElementById('editModalTitle').textContent = '编辑常规事项';
+        document.getElementById('editName').value = r.name;
+        document.getElementById('editCategory').value = r.category || 'other';
+        document.getElementById('editTime').value = r.time || '';
+        routineFields.style.display = 'block';
+    } else {
+        document.getElementById('editModalTitle').textContent = '编辑临时事项';
+        document.getElementById('editName').value = dayData.extras[idx].name;
+        routineFields.style.display = 'none';
+    }
+    document.getElementById('editModal').classList.add('active');
+}
+
+function closeEdit() { document.getElementById('editModal').classList.remove('active'); }
+
+function saveEdit() {
+    const type = document.getElementById('editType').value;
+    const idx = parseInt(document.getElementById('editId').value);
+    const name = document.getElementById('editName').value.trim();
+    if (!name) { toast('名称不能为空'); return; }
+    if (type === 'routine') {
+        const oldName = routines[idx].name;
+        if (oldName !== name &amp;&amp; dayData.routineCheckins[oldName] !== undefined) {
+            dayData.routineCheckins[name] = dayData.routineCheckins[oldName];
+            delete dayData.routineCheckins[oldName]; saveDayData();
+        }
+        routines[idx].name = name;
+        routines[idx].category = document.getElementById('editCategory').value;
+        routines[idx].time = document.getElementById('editTime').value;
+        saveRoutines();
+    } else {
+        dayData.extras[idx].name = name; saveDayData();
+    }
+    closeEdit(); toast('已更新 ✅'); render();
+}
+
+function renderHistory() {
+    const el = document.getElementById('historyList');
+    const keys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k.startsWith('checkin_20')) keys.push(k);
+    }
+    keys.sort().reverse();
+    if (!keys.length) {
+        el.innerHTML = '<div class="empty"><div class="empty-icon">📊</div><p>暂无打卡记录</p></div>';
+        return;
+    }
+    const savedR = localStorage.getItem(ROUTINES_KEY);
+    const rList = savedR ? JSON.parse(savedR) : DEFAULT_ROUTINES;
+    let html = '';
+    keys.slice(0, 14).forEach(k => {
+        const date = k.replace('checkin_', '');
+        const data = JSON.parse(localStorage.getItem(k));
+        const rDone = rList.filter(r => data.routineCheckins &amp;&amp; data.routineCheckins[r.name]).length;
+        const eTotal = (data.extras||[]).length;
+        const eDone = (data.extras||[]).filter(e => e.done).length;
+        const total = rList.length + eTotal, done = rDone + eDone;
+        const pct = total ? Math.round(done/total*100) : 0;
+        const color = pct >= 80 ? '#22c55e' : pct >= 50 ? '#f59e0b' : '#ef4444';
+        html += `<div class="history-item">
+            <div class="history-date">${date}</div>
+            <div class="history-bar"><div class="history-fill" style="width:${pct}%;background:${color}"></div></div>
+            <div class="history-pct" style="color:${color}">${pct}%</div>
+        </div>`;
+    });
+    el.innerHTML = html;
+}
+
+function clearHistory() {
+    if (!confirm('确定清除所有历史打卡数据？')) return;
+    const keys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k.startsWith('checkin_20') &amp;&amp; k !== DAY_KEY) keys.push(k);
+    }
+    keys.forEach(k => localStorage.removeItem(k));
+    toast('历史数据已清除'); renderHistory();
+}
+
+document.getElementById('dateInfo').textContent = fmtDate();
+loadRoutines(); loadDayData(); render();
+</script>
+</body>
+</html>
