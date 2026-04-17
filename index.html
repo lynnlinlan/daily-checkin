@@ -98,7 +98,7 @@
         .btn-ghost { background:transparent; color:var(--text-sec); border:none; }
         .btn-ghost:active { color:var(--text); background:#f1f5f9; }
         .btn-danger { background:transparent; color:var(--danger); border:1.5px solid var(--danger); }
-        .btn-danger:active { background:#fef2f2; }
+        .btn-danger:active { background:#fef2f9; }
         .add-inline {
             display:none; padding:8px 14px; border-top:1px solid var(--border); background:#fafbfc;
         }
@@ -285,8 +285,8 @@
 
 <script>
 const TODAY = new Date().toISOString().split('T')[0];
-const ROUTINES_KEY = 'checkin_routines';
-const DAY_KEY = 'checkin_' + TODAY;
+const ROUTINES_KEY = 'checkin_v2_routines';
+const DAY_KEY = 'checkin_v2_' + TODAY;
 
 const DEFAULT_ROUTINES = [
     { name: '吃阿司匹林', category: 'health', time: '08:00' },
@@ -301,15 +301,24 @@ let dayData = { routineCheckins: {}, extras: [] };
 
 function loadRoutines() {
     const saved = localStorage.getItem(ROUTINES_KEY);
-    if (saved) {
-        routines = JSON.parse(saved);
-    } else {
-        routines = [...DEFAULT_ROUTINES];
-        saveRoutines();
-        fetch('./routines.json').then(r => r.json()).then(data => {
-            if (data &amp;&amp; data.length) { routines = data; saveRoutines(); render(); }
-        }).catch(() => {});
-    }
+    if (saved) routines = JSON.parse(saved);
+
+    fetch('./routines.json?t=' + Date.now()).then(r => {
+        if (!r.ok) throw new Error('fetch failed');
+        return r.json();
+    }).then(data => {
+        if (data &amp;&amp; data.length) {
+            routines = data;
+            saveRoutines();
+            render();
+        }
+    }).catch(() => {
+        if (!routines.length) {
+            routines = [...DEFAULT_ROUTINES];
+            saveRoutines();
+            render();
+        }
+    });
 }
 
 function saveRoutines() { localStorage.setItem(ROUTINES_KEY, JSON.stringify(routines)); }
@@ -496,7 +505,7 @@ function renderHistory() {
     const keys = [];
     for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
-        if (k.startsWith('checkin_20')) keys.push(k);
+        if (k.startsWith('checkin_v2_20')) keys.push(k);
     }
     keys.sort().reverse();
     if (!keys.length) {
@@ -507,7 +516,7 @@ function renderHistory() {
     const rList = savedR ? JSON.parse(savedR) : DEFAULT_ROUTINES;
     let html = '';
     keys.slice(0, 14).forEach(k => {
-        const date = k.replace('checkin_', '');
+        const date = k.replace('checkin_v2_', '');
         const data = JSON.parse(localStorage.getItem(k));
         const rDone = rList.filter(r => data.routineCheckins &amp;&amp; data.routineCheckins[r.name]).length;
         const eTotal = (data.extras||[]).length;
@@ -529,7 +538,7 @@ function clearHistory() {
     const keys = [];
     for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
-        if (k.startsWith('checkin_20') &amp;&amp; k !== DAY_KEY) keys.push(k);
+        if (k.startsWith('checkin_v2_20') &amp;&amp; k !== DAY_KEY) keys.push(k);
     }
     keys.forEach(k => localStorage.removeItem(k));
     toast('历史数据已清除'); renderHistory();
