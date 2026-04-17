@@ -167,111 +167,6 @@
     </style>
 </head>
 <body>
-    <div id="toast" class="toast"></div>
-
-<div id="page-home" class="page active">
-    <div class="container">
-        <div class="header">
-            <h1>📋 每日打卡</h1>
-            <div class="date-info" id="dateInfo"></div>
-            <div class="stats-row">
-                <div class="stat-card"><div class="num" id="statDone">0</div><div class="label">已完成</div></div>
-                <div class="stat-card"><div class="num" id="statTotal">0</div><div class="label">总事项</div></div>
-                <div class="stat-card"><div class="num" id="statPct">0%</div><div class="label">完成率</div></div>
-            </div>
-            <div class="progress-wrap">
-                <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
-                <div class="progress-text" id="progressText">今日进度</div>
-            </div>
-        </div>
-        <div class="section">
-            <div class="section-header">
-                <div class="section-title"><span class="icon">🔄</span> 常规事项</div>
-                <button class="btn btn-sm btn-outline" id="btnAddRoutine">+ 添加</button>
-            </div>
-            <div class="card">
-                <div id="routineList"></div>
-                <div id="addRoutineInline" class="add-inline">
-                    <input id="newRoutineName" placeholder="输入事项名称...">
-                    <div class="add-row">
-                        <select id="newRoutineCategory">
-                            <option value="health">💊 健康</option>
-                            <option value="life">🏠 生活</option>
-                            <option value="work">💼 工作</option>
-                            <option value="other">📌 其他</option>
-                        </select>
-                        <input id="newRoutineTime" type="time" style="padding:5px 8px;border:1.5px solid var(--border);border-radius:8px;font-size:12px;">
-                        <button class="btn btn-sm btn-primary" id="btnConfirmRoutine">添加</button>
-                        <button class="btn btn-sm btn-ghost" id="btnCancelRoutine">取消</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="section">
-            <div class="section-header">
-                <div class="section-title"><span class="icon">📝</span> 今日临时事项</div>
-                <button class="btn btn-sm btn-outline" id="btnAddExtra">+ 添加</button>
-            </div>
-            <div class="card">
-                <div id="extraList"></div>
-                <div id="addExtraInline" class="add-inline">
-                    <input id="newExtraName" placeholder="输入临时事项...">
-                    <div class="add-row">
-                        <button class="btn btn-sm btn-primary" id="btnConfirmExtra">添加</button>
-                        <button class="btn btn-sm btn-ghost" id="btnCancelExtra">取消</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="sync-hint">💡 数据自动保存在本地浏览器，每天常规项自动出现</div>
-    </div>
-</div>
-
-<div id="page-history" class="page">
-    <div class="container" style="padding-top:16px;">
-        <h2 style="font-size:18px; margin-bottom:12px;">📊 打卡历史</h2>
-        <div class="card" id="historyList"></div>
-        <div style="margin-top:12px; text-align:center;">
-            <button class="btn btn-danger btn-sm" id="btnClearHistory">🗑️ 清除历史数据</button>
-        </div>
-    </div>
-</div>
-
-<div id="editModal" class="modal-overlay">
-    <div class="modal">
-        <h3 id="editModalTitle">编辑</h3>
-        <input type="hidden" id="editId">
-        <input type="hidden" id="editType">
-        <div class="form-group">
-            <label>名称</label>
-            <input id="editName" placeholder="事项名称">
-        </div>
-        <div id="editRoutineFields">
-            <div class="form-group">
-                <label>分类</label>
-                <select id="editCategory">
-                    <option value="health">💊 健康</option>
-                    <option value="life">🏠 生活</option>
-                    <option value="work">💼 工作</option>
-                    <option value="other">📌 其他</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>提醒时间</label>
-                <input id="editTime" type="time">
-            </div>
-        </div>
-        <div class="modal-actions">
-            <button class="btn btn-outline" id="btnCancelEdit">取消</button>
-            <button class="btn btn-primary" id="btnSaveEdit">保存</button>
-        </div>
-    </div>
-</div>
-
-<div class="bottom-nav">
-    <button class="nav-item active" id="navHome"><span class="nav-icon">📋</span>打卡</button>
-    <button class="nav-item" id="navHistory"><span class="nav-icon">📊</span>历史</button>
-</div>
 
 <div id="toast" class="toast"></div>
 
@@ -290,6 +185,7 @@
                 <div class="progress-text" id="progressText">今日进度</div>
             </div>
         </div>
+
         <div class="section">
             <div class="section-header">
                 <div class="section-title"><span class="icon">🔄</span> 常规事项</div>
@@ -313,6 +209,7 @@
                 </div>
             </div>
         </div>
+
         <div class="section">
             <div class="section-header">
                 <div class="section-title"><span class="icon">📝</span> 今日临时事项</div>
@@ -329,6 +226,7 @@
                 </div>
             </div>
         </div>
+
         <div class="sync-hint">💡 数据自动保存在本地浏览器，每天常规项自动出现</div>
     </div>
 </div>
@@ -378,3 +276,369 @@
     <button class="nav-item active" id="navHome"><span class="nav-icon">📋</span>打卡</button>
     <button class="nav-item" id="navHistory"><span class="nav-icon">📊</span>历史</button>
 </div>
+
+<script>
+(function() {
+    'use strict';
+
+    var TODAY = new Date().toISOString().split('T')[0];
+    var ROUTINES_KEY = 'dk_v3_routines';
+    var DAY_KEY = 'dk_v3_' + TODAY;
+    var DATA_VERSION = 3;
+
+    var DEFAULT_ROUTINES = [
+        { name: '吃阿司匹林', category: 'health', time: '08:00' },
+        { name: '复合维生素', category: 'health', time: '' },
+        { name: '鱼油+钙片', category: 'health', time: '08:00' }
+    ];
+
+    var CAT_LABELS = { health:'💊 健康', life:'🏠 生活', work:'💼 工作', other:'📌 其他' };
+
+    var routines = [];
+    var dayData = { routineCheckins: {}, extras: [] };
+
+    // --- Storage ---
+    function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} }
+    function load(k) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch(e) { return null; } }
+
+    // --- Init routines ---
+    function initRoutines() {
+        var saved = load(ROUTINES_KEY);
+        if (saved && saved.length) {
+            routines = saved;
+        } else {
+            routines = DEFAULT_ROUTINES.map(function(r) { return {name:r.name, category:r.category, time:r.time}; });
+            save(ROUTINES_KEY, routines);
+        }
+        // Try sync from routines.json
+        try {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', './routines.json?t=' + Date.now(), true);
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    try {
+                        var data = JSON.parse(xhr.responseText);
+                        if (data && data.length) {
+                            routines = data;
+                            save(ROUTINES_KEY, routines);
+                            render();
+                        }
+                    } catch(e) {}
+                }
+            };
+            xhr.send();
+        } catch(e) {}
+    }
+
+    function initDayData() {
+        var saved = load(DAY_KEY);
+        dayData = saved || { routineCheckins: {}, extras: [] };
+    }
+
+    // --- Toast ---
+    var toastTimer;
+    function toast(msg) {
+        var el = document.getElementById('toast');
+        el.textContent = msg;
+        el.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function() { el.classList.remove('show'); }, 2000);
+    }
+
+    // --- Date ---
+    function fmtDate() {
+        var d = new Date(), w = ['日','一','二','三','四','五','六'];
+        return d.getFullYear() + '年' + (d.getMonth()+1) + '月' + d.getDate() + '日 星期' + w[d.getDay()];
+    }
+
+    function uid() { return Math.random().toString(36).substr(2, 6); }
+
+    // --- Pages ---
+    function switchPage(p) {
+        var pages = document.querySelectorAll('.page');
+        for (var i = 0; i < pages.length; i++) pages[i].classList.remove('active');
+        document.getElementById('page-' + p).classList.add('active');
+        var navs = document.querySelectorAll('.nav-item');
+        navs[0].classList.toggle('active', p === 'home');
+        navs[1].classList.toggle('active', p === 'history');
+        if (p === 'history') renderHistory();
+    }
+
+    // --- Render ---
+    function render() { renderRoutines(); renderExtras(); updateStats(); }
+
+    function updateStats() {
+        var rDone = routines.filter(function(r) { return dayData.routineCheckins[r.name]; }).length;
+        var eDone = (dayData.extras || []).filter(function(e) { return e.done; }).length;
+        var total = routines.length + (dayData.extras || []).length;
+        var done = rDone + eDone;
+        var pct = total ? Math.round(done / total * 100) : 0;
+        document.getElementById('statDone').textContent = done;
+        document.getElementById('statTotal').textContent = total;
+        document.getElementById('statPct').textContent = pct + '%';
+        document.getElementById('progressFill').style.width = pct + '%';
+        document.getElementById('progressText').textContent = '今日进度 ' + done + '/' + total;
+    }
+
+    function renderRoutines() {
+        var el = document.getElementById('routineList');
+        if (!routines.length) {
+            el.innerHTML = '<div class="empty"><div class="empty-icon">🔄</div><p>暂无常规事项</p></div>';
+            return;
+        }
+        var html = '';
+        for (var i = 0; i < routines.length; i++) {
+            var r = routines[i];
+            var checked = !!dayData.routineCheckins[r.name];
+            var catTag = r.category ? '<span class="tag ' + r.category + '">' + (CAT_LABELS[r.category] || '') + '</span>' : '';
+            var timeTag = r.time ? '<span class="tag time">⏰ ' + r.time + '</span>' : '';
+            html += '<div class="check-item ' + (checked ? 'done' : '') + '" data-routine-idx="' + i + '">'
+                + '<div class="checkbox">' + (checked ? '✓' : '') + '</div>'
+                + '<div class="item-info"><div class="item-name">' + r.name + '</div>'
+                + '<div class="item-meta">' + catTag + timeTag + '</div></div>'
+                + '<div class="item-actions" data-stop="1">'
+                + '<button class="btn-icon" data-edit-routine="' + i + '">✏️</button>'
+                + '<button class="btn-icon danger" data-del-routine="' + i + '">🗑️</button>'
+                + '</div></div>';
+        }
+        el.innerHTML = html;
+    }
+
+    function renderExtras() {
+        var el = document.getElementById('extraList');
+        var extras = dayData.extras || [];
+        if (!extras.length) {
+            el.innerHTML = '<div class="empty"><div class="empty-icon">📝</div><p>暂无临时事项</p></div>';
+            return;
+        }
+        var html = '';
+        for (var i = 0; i < extras.length; i++) {
+            var e = extras[i];
+            html += '<div class="check-item ' + (e.done ? 'done' : '') + '" data-extra-idx="' + i + '">'
+                + '<div class="checkbox">' + (e.done ? '✓' : '') + '</div>'
+                + '<div class="item-info"><div class="item-name">' + e.name + '</div></div>'
+                + '<div class="item-actions" data-stop="1">'
+                + '<button class="btn-icon" data-edit-extra="' + i + '">✏️</button>'
+                + '<button class="btn-icon danger" data-del-extra="' + i + '">🗑️</button>'
+                + '</div></div>';
+        }
+        el.innerHTML = html;
+    }
+
+    // --- Event Delegation ---
+    document.addEventListener('click', function(ev) {
+        var target = ev.target;
+
+        // Routine toggle
+        var ri = target.closest('[data-routine-idx]');
+        if (ri && !target.closest('[data-stop]')) {
+            var idx = parseInt(ri.getAttribute('data-routine-idx'));
+            var name = routines[idx].name;
+            dayData.routineCheckins[name] = !dayData.routineCheckins[name];
+            save(DAY_KEY, dayData);
+            render();
+            return;
+        }
+
+        // Extra toggle
+        var ei = target.closest('[data-extra-idx]');
+        if (ei && !target.closest('[data-stop]')) {
+            var idx2 = parseInt(ei.getAttribute('data-extra-idx'));
+            dayData.extras[idx2].done = !dayData.extras[idx2].done;
+            save(DAY_KEY, dayData);
+            render();
+            return;
+        }
+
+        // Edit routine
+        if (target.closest('[data-edit-routine]')) {
+            var idx3 = parseInt(target.closest('[data-edit-routine]').getAttribute('data-edit-routine'));
+            openEdit('routine', idx3);
+            return;
+        }
+
+        // Delete routine
+        if (target.closest('[data-del-routine]')) {
+            var idx4 = parseInt(target.closest('[data-del-routine]').getAttribute('data-del-routine'));
+            if (confirm('确定删除「' + routines[idx4].name + '」？')) {
+                routines.splice(idx4, 1);
+                save(ROUTINES_KEY, routines);
+                toast('已删除');
+                render();
+            }
+            return;
+        }
+
+        // Edit extra
+        if (target.closest('[data-edit-extra]')) {
+            var idx5 = parseInt(target.closest('[data-edit-extra]').getAttribute('data-edit-extra'));
+            openEdit('extra', idx5);
+            return;
+        }
+
+        // Delete extra
+        if (target.closest('[data-del-extra]')) {
+            var idx6 = parseInt(target.closest('[data-del-extra]').getAttribute('data-del-extra'));
+            if (confirm('确定删除「' + dayData.extras[idx6].name + '」？')) {
+                dayData.extras.splice(idx6, 1);
+                save(DAY_KEY, dayData);
+                toast('已删除');
+                render();
+            }
+            return;
+        }
+    });
+
+    // --- Add Routine ---
+    document.getElementById('btnAddRoutine').addEventListener('click', function() {
+        document.getElementById('addRoutineInline').classList.add('active');
+        document.getElementById('newRoutineName').focus();
+    });
+    document.getElementById('btnCancelRoutine').addEventListener('click', function() {
+        document.getElementById('addRoutineInline').classList.remove('active');
+        document.getElementById('newRoutineName').value = '';
+    });
+    document.getElementById('btnConfirmRoutine').addEventListener('click', function() {
+        var name = document.getElementById('newRoutineName').value.trim();
+        if (!name) { toast('请输入名称'); return; }
+        routines.push({ name: name, category: document.getElementById('newRoutineCategory').value, time: document.getElementById('newRoutineTime').value });
+        save(ROUTINES_KEY, routines);
+        document.getElementById('addRoutineInline').classList.remove('active');
+        document.getElementById('newRoutineName').value = '';
+        toast('已添加 ✅');
+        render();
+    });
+
+    // --- Add Extra ---
+    document.getElementById('btnAddExtra').addEventListener('click', function() {
+        document.getElementById('addExtraInline').classList.add('active');
+        document.getElementById('newExtraName').focus();
+    });
+    document.getElementById('btnCancelExtra').addEventListener('click', function() {
+        document.getElementById('addExtraInline').classList.remove('active');
+        document.getElementById('newExtraName').value = '';
+    });
+    document.getElementById('btnConfirmExtra').addEventListener('click', function() {
+        var name = document.getElementById('newExtraName').value.trim();
+        if (!name) { toast('请输入名称'); return; }
+        if (!dayData.extras) dayData.extras = [];
+        dayData.extras.push({ id: uid(), name: name, done: false });
+        save(DAY_KEY, dayData);
+        document.getElementById('addExtraInline').classList.remove('active');
+        document.getElementById('newExtraName').value = '';
+        toast('已添加 ✅');
+        render();
+    });
+
+    // --- Edit Modal ---
+    function openEdit(type, idx) {
+        document.getElementById('editType').value = type;
+        document.getElementById('editId').value = idx;
+        if (type === 'routine') {
+            var r = routines[idx];
+            document.getElementById('editModalTitle').textContent = '编辑常规事项';
+            document.getElementById('editName').value = r.name;
+            document.getElementById('editCategory').value = r.category || 'other';
+            document.getElementById('editTime').value = r.time || '';
+            document.getElementById('editRoutineFields').style.display = 'block';
+        } else {
+            document.getElementById('editModalTitle').textContent = '编辑临时事项';
+            document.getElementById('editName').value = dayData.extras[idx].name;
+            document.getElementById('editRoutineFields').style.display = 'none';
+        }
+        document.getElementById('editModal').classList.add('active');
+    }
+
+    document.getElementById('btnCancelEdit').addEventListener('click', function() {
+        document.getElementById('editModal').classList.remove('active');
+    });
+
+    document.getElementById('btnSaveEdit').addEventListener('click', function() {
+        var type = document.getElementById('editType').value;
+        var idx = parseInt(document.getElementById('editId').value);
+        var name = document.getElementById('editName').value.trim();
+        if (!name) { toast('名称不能为空'); return; }
+        if (type === 'routine') {
+            var oldName = routines[idx].name;
+            if (oldName !== name && dayData.routineCheckins[oldName] !== undefined) {
+                dayData.routineCheckins[name] = dayData.routineCheckins[oldName];
+                delete dayData.routineCheckins[oldName];
+                save(DAY_KEY, dayData);
+            }
+            routines[idx].name = name;
+            routines[idx].category = document.getElementById('editCategory').value;
+            routines[idx].time = document.getElementById('editTime').value;
+            save(ROUTINES_KEY, routines);
+        } else {
+            dayData.extras[idx].name = name;
+            save(DAY_KEY, dayData);
+        }
+        document.getElementById('editModal').classList.remove('active');
+        toast('已更新 ✅');
+        render();
+    });
+
+    // Click overlay to close modal
+    document.getElementById('editModal').addEventListener('click', function(ev) {
+        if (ev.target === this) this.classList.remove('active');
+    });
+
+    // --- Nav ---
+    document.getElementById('navHome').addEventListener('click', function() { switchPage('home'); });
+    document.getElementById('navHistory').addEventListener('click', function() { switchPage('history'); });
+
+    // --- History ---
+    function renderHistory() {
+        var el = document.getElementById('historyList');
+        var keys = [];
+        for (var i = 0; i < localStorage.length; i++) {
+            var k = localStorage.key(i);
+            if (k.indexOf('dk_v3_') === 0 && k.indexOf('20') > -1) keys.push(k);
+        }
+        keys.sort().reverse();
+        if (!keys.length) {
+            el.innerHTML = '<div class="empty"><div class="empty-icon">📊</div><p>暂无打卡记录</p></div>';
+            return;
+        }
+        var rList = load(ROUTINES_KEY) || DEFAULT_ROUTINES;
+        var html = '';
+        for (var j = 0; j < Math.min(keys.length, 14); j++) {
+            var date = keys[j].replace('dk_v3_', '');
+            var data = load(keys[j]);
+            if (!data) continue;
+            var rDone = rList.filter(function(r) { return data.routineCheckins && data.routineCheckins[r.name]; }).length;
+            var eTotal = (data.extras || []).length;
+            var eDone = (data.extras || []).filter(function(e) { return e.done; }).length;
+            var total = rList.length + eTotal;
+            var done = rDone + eDone;
+            var pct = total ? Math.round(done / total * 100) : 0;
+            var color = pct >= 80 ? '#22c55e' : pct >= 50 ? '#f59e0b' : '#ef4444';
+            html += '<div class="history-item"><div class="history-date">' + date + '</div>'
+                + '<div class="history-bar"><div class="history-fill" style="width:' + pct + '%;background:' + color + '"></div></div>'
+                + '<div class="history-pct" style="color:' + color + '">' + pct + '%</div></div>';
+        }
+        el.innerHTML = html;
+    }
+
+    document.getElementById('btnClearHistory').addEventListener('click', function() {
+        if (!confirm('确定清除所有历史打卡数据？')) return;
+        var keys = [];
+        for (var i = 0; i < localStorage.length; i++) {
+            var k = localStorage.key(i);
+            if (k.indexOf('dk_v3_') === 0 && k.indexOf('20') > -1 && k !== DAY_KEY) keys.push(k);
+        }
+        for (var j = 0; j < keys.length; j++) localStorage.removeItem(keys[j]);
+        toast('历史数据已清除');
+        renderHistory();
+    });
+
+    // --- Boot ---
+    document.getElementById('dateInfo').textContent = fmtDate();
+    initRoutines();
+    initDayData();
+    render();
+
+})();
+</script>
+</body>
+</html>

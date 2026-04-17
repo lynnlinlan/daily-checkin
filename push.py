@@ -24,7 +24,7 @@ EXTRAS_FILE = os.path.join(BASE_DIR, 'extras.json')
 SERVERCHAN_KEY = os.environ.get('SERVERCHAN_KEY', '')
 PUSHPLUS_TOKEN = os.environ.get('PUSHPLUS_TOKEN', '')
 PUSH_TYPE = os.environ.get('PUSH_TYPE', 'serverchan')
-GITHUB_REPO = os.environ.get('GITHUB_REPOSITORY', '')
+GITHUB_REPO = os.environ.get('GITHUB_REPOSITORY', '')  # 自动由 Actions 注入，格式: owner/repo
 
 
 def load_json(path, default=None):
