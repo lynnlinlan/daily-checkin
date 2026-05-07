@@ -2,15 +2,19 @@ name: 每日打卡推送
 
 on:
   schedule:
-    # UTC 00:00 = 北京时间 08:00 早上提醒
     - cron: '0 0 * * *'
-    # UTC 15:00 = 北京时间 23:00 晚上检查
     - cron: '0 15 * * *'
   workflow_dispatch:
+    inputs:
+      push_mode:
+        description: 'morning 或 evening'
+        required: false
+        default: 'morning'
+  repository_dispatch:
+    types: [morning, evening]
 
 jobs:
-  push-morning:
-    if: github.event.schedule == '0 0 * * *' || (github.event_name == 'workflow_dispatch')
+  push:
     runs-on: ubuntu-latest
     steps:
       - name: 检出代码
@@ -24,33 +28,23 @@ jobs:
       - name: 安装依赖
         run: pip install requests
 
-      - name: 早间打卡提醒
+      - name: 判断推送模式
+        id: mode
+        run: |
+          if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
+            echo "push_mode=${{ github.event.action }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "push_mode=${{ github.event.inputs.push_mode || 'morning' }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event.schedule }}" = "0 0 * * *" ]; then
+            echo "push_mode=morning" >> $GITHUB_OUTPUT
+          else
+            echo "push_mode=evening" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 执行推送
         env:
           SERVERCHAN_KEY: ${{ secrets.SERVERCHAN_KEY }}
           PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
           PUSH_TYPE: serverchan
-          PUSH_MODE: morning
-        run: python push.py
-
-  push-evening:
-    if: github.event.schedule == '0 15 * * *'
-    runs-on: ubuntu-latest
-    steps:
-      - name: 检出代码
-        uses: actions/checkout@v4
-
-      - name: 设置 Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: 安装依赖
-        run: pip install requests
-
-      - name: 晚间打卡检查
-        env:
-          SERVERCHAN_KEY: ${{ secrets.SERVERCHAN_KEY }}
-          PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
-          PUSH_TYPE: serverchan
-          PUSH_MODE: evening
+          PUSH_MODE: ${{ steps.mode.outputs.push_mode }}
         run: python push.py
