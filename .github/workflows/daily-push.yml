@@ -1,20 +1,11 @@
 name: 每日打卡推送
 
 on:
-  # 保留 GitHub 内部调度（备用，可能不准时）
+  # 每小时跑一次，Python脚本自己判断是否推送
   schedule:
-    - cron: '0 0 * * *'
-    - cron: '0 15 * * *'
-  # 手动触发 / 外部触发
+    - cron: '0 * * * *'
+  # 手动测试用
   workflow_dispatch:
-    inputs:
-      push_mode:
-        description: '推送模式: morning 或 evening'
-        required: false
-        default: 'morning'
-  # 外部定时服务触发（cron-job.org 等）
-  repository_dispatch:
-    types: [morning, evening]
 
 jobs:
   push:
@@ -31,23 +22,9 @@ jobs:
       - name: 安装依赖
         run: pip install requests
 
-      - name: 判断推送模式
-        id: mode
-        run: |
-          if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
-            echo "push_mode=${{ github.event.action }}" >> $GITHUB_OUTPUT
-          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "push_mode=${{ github.event.inputs.push_mode || 'morning' }}" >> $GITHUB_OUTPUT
-          elif [ "${{ github.event.schedule }}" = "0 0 * * *" ]; then
-            echo "push_mode=morning" >> $GITHUB_OUTPUT
-          else
-            echo "push_mode=evening" >> $GITHUB_OUTPUT
-          fi
-
       - name: 执行推送
         env:
           SERVERCHAN_KEY: ${{ secrets.SERVERCHAN_KEY }}
           PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
           PUSH_TYPE: serverchan
-          PUSH_MODE: ${{ steps.mode.outputs.push_mode }}
         run: python push.py
